@@ -1,6 +1,5 @@
 import argparse
 from pathlib import Path
-import re
 
 parser = argparse.ArgumentParser(description='[+] Process NFC dumps from Flipper Zero to MCT format')
 parser.add_argument('source', help='MCT filename', type=Path)
@@ -9,11 +8,8 @@ parser.add_argument('-s', '--uid-size', type=int, choices=[4, 7], required=True)
 args = parser.parse_args()
 
 
-uidsize = 4
-
 inblocks = [line for line in args.source.read_text().strip().splitlines() if not line.startswith("+")]
 block0 = bytes.fromhex(inblocks[0])
-print(block0.hex(" ").upper())
 
 if args.uidsize == 7:
     sak_offset = 7
@@ -36,7 +32,7 @@ with args.destination.open("w") as outfile:
     outfile.write(f"# Nfc device type can be UID, Mifare Ultralight, Mifare Classic, FeliCa or ISO15693\n")
     outfile.write(f"Device type: Mifare Classic\n")
     outfile.write(f"# UID is common for all formats\n")
-    outfile.write(f"UID: {block0[:uidsize].hex(' ').upper()}\n")
+    outfile.write(f"UID: {block0[:args.uidsize].hex(' ').upper()}\n")
     outfile.write(f"# ISO14443 specific fields\n")
     outfile.write(f"ATQA: {atqa.to_bytes(2, 'big').hex(' ').upper()}\n")
     outfile.write(f"SAK: {sak:02X}\n")
